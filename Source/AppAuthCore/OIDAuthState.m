@@ -166,9 +166,21 @@ static const NSUInteger kExpiryTimeTolerance = 60;
                                // 2. The code is for this client and, for security reasons, the
                                //    application developer must verify the id_token signature and
                                //    c_hash before calling the token endpoint
-                               OIDAuthState *authState = [[OIDAuthState alloc]
-                                   initWithAuthorizationResponse:authorizationResponse];
-                               callback(authState, authorizationError);
+                                                          OIDTokenRequest *tokenExchangeRequest =
+                                   [authorizationResponse tokenExchangeRequest];
+                               [OIDAuthorizationService performTokenRequest:tokenExchangeRequest
+                                              originalAuthorizationResponse:authorizationResponse
+                                   callback:^(OIDTokenResponse *_Nullable tokenResponse,
+                                                         NSError *_Nullable tokenError) {
+                                                OIDAuthState *authState;
+                                                if (tokenResponse) {
+                                                  authState = [[OIDAuthState alloc]
+                                                      initWithAuthorizationResponse:
+                                                          authorizationResponse
+                                                                      tokenResponse:tokenResponse];
+                                                }
+                                                callback(authState, tokenError);
+                               }];
                              }
                            } else {
                              callback(nil, authorizationError);
